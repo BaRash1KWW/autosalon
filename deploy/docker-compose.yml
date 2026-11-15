@@ -1,0 +1,34 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: autosalon-web:local
+    container_name: autosalon-app
+    environment:
+      NODE_ENV: production
+      DB_CLIENT: mssql
+      PORT: "5000"
+      HOST: 0.0.0.0
+      MSSQL_AUTH: sql
+      MSSQL_SERVER: ${MSSQL_DOCKER_SERVER:-host.docker.internal}
+      MSSQL_PORT: ${MSSQL_DOCKER_PORT:-1433}
+      MSSQL_DATABASE: ${MSSQL_DATABASE:-AutoSalonDB}
+      MSSQL_USER: ${MSSQL_USER}
+      MSSQL_PASSWORD: ${MSSQL_PASSWORD}
+      MSSQL_ENCRYPT: ${MSSQL_ENCRYPT:-false}
+      MSSQL_TRUST_SERVER_CERTIFICATE: ${MSSQL_TRUST_SERVER_CERTIFICATE:-true}
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.30-alpine
+    container_name: autosalon-nginx
+    ports:
+      - "127.0.0.1:80:80"
+      - "127.0.0.1:443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - app
+    restart: unless-stopped
